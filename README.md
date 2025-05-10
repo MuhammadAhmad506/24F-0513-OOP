@@ -1,2 +1,3 @@
 # 24F-0513-OOP
-STRONGHOLD GAME : This project demonstrates core OOP concepts effectively, with encapsulation, abstraction, and composition being particularly strong. With added design patterns, it could evolve into a more extensible and maintainable system.
+STRONGHOLD GAME: The Medieval Kingdom Simulator is a text-based strategy game that follows Object-Oriented Programming (OOP) principles to model a kingdom management system. Players take on the role of a monarch, making decisions on taxation, military recruitment, resource management, and diplomacy while navigating economic challenges and maintaining public order.
+This project effectively demonstrates core OOP concepts, with encapsulation, abstraction, and composition being particularly strong. With added design patterns, it could evolve into a more extensible and maintainable system.
