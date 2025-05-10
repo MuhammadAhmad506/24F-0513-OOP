@@ -4,13 +4,13 @@
 #include <cstdlib>
 #include <ctime>
 #include <string>
-#include <windows.h> // For Sleep() function
-#include <conio.h>   // For _getch() function
+#include <windows.h> 
+#include <conio.h>  
 #include <fstream>
 
 using namespace std;
 
-// Position implementation
+
 Position::Position() : x(0), y(0) {}
 
 void clearScreen() {
@@ -22,7 +22,7 @@ void Position::NewPosition(int newX, int newY) {
     y = newY;
 }
 
-// GameMap implementation
+
 GameMap::GameMap() {
     Initialize_GameMap();
 }
