@@ -4,13 +4,13 @@
 #include <cstdlib>
 #include <ctime>
 #include <string>
-#include <windows.h> 
-#include <conio.h>  
+#include <windows.h> // For Sleep() function
+#include <conio.h>   // For _getch() function
 #include <fstream>
 
 using namespace std;
 
-
+// Position implementation
 Position::Position() : x(0), y(0) {}
 
 void clearScreen() {
@@ -22,7 +22,7 @@ void Position::NewPosition(int newX, int newY) {
     y = newY;
 }
 
-
+// GameMap implementation
 GameMap::GameMap() {
     Initialize_GameMap();
 }
@@ -44,6 +44,7 @@ void GameMap::Initialize_GameMap() {
 }
 
 void GameMap::Print_GameMap() {
+
     for (int i = 0; i < 20; i++) {
         for (int j = 0; j < 70; j++) {
             cout << arr[i][j];
@@ -65,6 +66,7 @@ void GameMap::setCell(int x, int y, char value) {
     }
 }
 
+// Resource implementation
 Resource::Resource(const string& name, int amount) : name(name), amount(amount) {}
 
 string Resource::getName() const {
@@ -89,7 +91,7 @@ void Resource::display() const {
 }
 
 // Economy implementation
-Economy::Economy() : healthOfEconomy(100), amount(10000), taxAmount(0) {}
+Economy::Economy() : healthOfEconomy(70), amount(5000), taxAmount(0) {}
 
 void Economy::Set_TaxAmount(int a) {
     taxAmount = a;
@@ -222,7 +224,7 @@ void King::Impose_Tax(int a, bool everyone, Kingdom* kingdom) {
 
     Econ_Health_Checker();
     if (!everyone) {
-        kingdom->getNobles()->increaseResentment(5);
+        kingdom->getNobles()->increaseResentment(10);
         cout << "Nobles bear resentment towards the king." << endl;
         Sleep(2000);
     }
@@ -275,9 +277,7 @@ void TaxCollector::move(GameMap& map, int dx, int dy) {
     map.setCell(newX, newY, getSymbol());
 }
 
-bool TaxCollector::isAtPosition(int x, int y) const {
-    return this->x == x && this->y == y;
-}
+
 
 
 
@@ -324,12 +324,12 @@ void TaxCollector::CollectTax(King& king, Kingdom* kingdom, GameMap& map) {
         case 'a': if (y > 1) y--; break;    // Left
         case 'd': if (y < 68) y++; break;   // Right
 
-        case 'c': {  // Collect taxes
-            // Check if on Nobles
+        case 'c': {  
+            
             if (x == kingdom->getNobles()->getX() && y == kingdom->getNobles()->getY()) {
                 king.IncreaseEcon(king.Get_TaxAmount());
                 cout << "Collected taxes from nobles!" << endl;
-                kingdom->getNobles()->increaseResentment(2);
+                kingdom->getNobles()->increaseResentment(12);
                 waitKey();
             }
             // Check if on Locals
@@ -347,34 +347,20 @@ void TaxCollector::CollectTax(King& king, Kingdom* kingdom, GameMap& map) {
             break;
         }
 
-        case 'q':  // Quit tax collection
+        case 'q':  
             collecting = false;
             break;
         }
 
-        // Update Tax Collector position
+        
         map.setCell(x, y, 'T');
+        
+        
     }
 
-    // Return to starting position
+
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 void TaxCollector::spawn(GameMap& map, int x, int y) {
@@ -382,7 +368,7 @@ void TaxCollector::spawn(GameMap& map, int x, int y) {
     map.setCell(x, y, getSymbol());
 }
 
-// General implementation
+
 General::General() : general_key(1111) {
     setSymbol('G');
     setName("General");
@@ -404,9 +390,9 @@ void General::imposePenalty(Kingdom* kingdom) {
     kingdom->getHappiness()->change(-PENALTY_HAPPINESS);
 
     // Small chance of rebellion
-    if (rand() % 100 < 20) { // 20% chance
+    if (rand() % 100 < 20) { 
         int rebels = kingdom->getArmy()->getSize() / 10;
-        kingdom->getArmy()->setSize(kingdom->getArmy()->getSize() - rebels);
+        kingdom->getArmy()->set_Soldiers_size(kingdom->getArmy()->getSize() - rebels);
         std::cout << rebels << " soldiers have deserted!\n";
     }
 
@@ -417,20 +403,34 @@ void General::imposePenalty(Kingdom* kingdom) {
 
 
 bool General::PassKey_Check(Kingdom* kingdom) {
+    int counter = 0;
+    while (true){
+		clearScreen();
     cout << "Enter the general's passkey: ";
     int passkey;
     cin >> passkey;
     if (passkey == general_key) {
         cout << "Access granted." << endl;
         return true;
+        
     }
-    cout << "Invalid passkey!" << endl;
-    Sleep(1000);
-    return false;
-}
+    else
+	{
+		counter++;
+        if (counter == 2) { cout << "\nBe Serious the next is the last turn\n "; }
+		if (counter >= maxAttempts) {
+			imposePenalty(kingdom);
+			cout << "Access denied. Too many failed attempts." << endl;
+			return false;
+		}
+		cout << "Access denied. Attempts left: " << (maxAttempts - counter) << endl;
+
+	}}}
+
+
 
 // Soldier implementation
-Soldier::Soldier() : size(0), morale(50), training(1), damage(1), rebels(0) {}
+Soldier::Soldier() : size(0), morale(50), training(0), damage(1), rebels(0) {}
 
 int Soldier::getSize() const {
     return size;
@@ -444,7 +444,7 @@ int Soldier::getTraining() const {
     return training;
 }
 
-void Soldier::setSize(int newSize) {
+void Soldier::set_Soldiers_size(int newSize) {
     size = newSize;
     if (size < 0) size = 0;
 }
@@ -468,7 +468,7 @@ void Soldier::moral_checker() {
 }
 
 void Soldier::spawn(GameMap& map, int x, int y) {
-    map.setCell(x, y, 'S');
+    map.setCell(x, y, getSymbol());
 }
 
 char Soldier::getSymbol() const {
@@ -485,9 +485,9 @@ void Soldier::Display_Stats() const {
 
 // Kingdom implementation
 Kingdom::Kingdom(const string& kingdomName) : name(kingdomName), taxEveryone(true) {
-    gold = new Resource("Gold", 1000);
+    gold = new Resource("Gold", 500);
     food = new Resource("Food", 1000);
-    population = new Resource("Population", 500);
+    population = new Resource("Population", 100);
     happiness = new Resource("Happiness", 50);
     army = new Soldier();
     king = new King();
@@ -497,6 +497,9 @@ Kingdom::Kingdom(const string& kingdomName) : name(kingdomName), taxEveryone(tru
     general = new General();
     gameMap = new GameMap();
 }
+
+
+
 
 Kingdom::~Kingdom() {
     delete gold;
@@ -580,6 +583,7 @@ void Kingdom::harvestFood() {
 void Kingdom::trainArmy(int count) {
     // First verify the General's authorization
     if (!general->PassKey_Check(this)) {
+        // Penalty already handled in PassKey_Check
         return;
     }
 
@@ -612,36 +616,37 @@ void Kingdom::trainArmy(int count) {
         return;
     }
 
-    // Execute recruitment
-    StatusDisplay::showLoadingBar(" " + general->getName() + " is training troops", 5);
+    StatusDisplay::showLoadingBar( general->getName() + " is training troops", 5);
 
-    // Deduct costs
     gold->change(-goldCost);
     population->change(-count);
 
     // Add soldiers
     int oldSize = army->getSize();
-    army->setSize(oldSize + count);
+    army->set_Soldiers_size(oldSize + count);
 
-    
     if (count > 50) {
-        
+        // Large recruitment affects morale
         army->changeMorale(-5);
         happiness->change(-3);
         cout << "Mass conscription has lowered morale and happiness!" << endl;
     }
     else if (count < 10) {
-        
-        army->train(); 
+        army->train(); // Extra training
         cout << "Elite squad receives special training!" << endl;
     }
+    
 
-    // Spawn soldiers on map
-    for (int i = 0; i < min(count, 5); i++) { // Spawn up to 5 soldier symbols
-        army->spawn(*gameMap, 10 + i, 10 + i);
-    }
+	gameMap->setCell(ARMY_X, ARMY_Y, 'S');// set the symbol of the army on the map
 
     
+    clearScreen();
+    gameMap->Print_GameMap();
+    waitKey();
+   
+
+    clearScreen();
+    // Recruitment report
     cout << "\n=== Recruitment Complete ===" << endl;
     cout << "Trained " << count << " new soldiers" << endl;
     cout << "Army size: " << oldSize << " -> " << army->getSize() << endl;
@@ -652,11 +657,10 @@ void Kingdom::trainArmy(int count) {
     if (rand() % 100 < 15) { // 15% chance
         int volunteers = rand() % (count / 5) + 1;
         population->change(-volunteers);
-        army->setSize(army->getSize() + volunteers);
+        army->set_Soldiers_size(army->getSize() + volunteers);
         cout << "\nBonus: " << volunteers << " volunteers joined the army!" << endl;
     }
-
-    Sleep(3000);
+    _getch();
 }
 
 
@@ -708,7 +712,7 @@ void Kingdom::randomEvent() {
         cout << "Civil unrest in your kingdom!" << endl;
         happiness->change(-15);
         if (army->getSize() > 0) {
-            army->setSize(army->getSize() - army->getSize() / 20);
+            army->set_Soldiers_size(army->getSize() - army->getSize() / 20);
         }
         break;
     case 4:
@@ -731,7 +735,7 @@ void Kingdom::display() const {
     cout << "=============================" << endl;
 }
 
-
+// StatusDisplay implementation
 void StatusDisplay::showLoadingBar(const string& action, int seconds) {
     const int barWidth = 40;
     int totalSteps = seconds * 10;
@@ -772,7 +776,7 @@ char StatusDisplay::getConfirmation(const string& message) {
     return response;
 }
 
-
+// GameManager implementation
 GameManager::GameManager() : kingdom(nullptr), gameMap(nullptr), currentTurn(0), gameOver(false) {}
 
 GameManager::~GameManager() {
@@ -796,7 +800,11 @@ void GameManager::displayMainMenu() {
 void GameManager::displayMap() {
     clearScreen();
     StatusDisplay::displayBanner("Kingdom Map");
+    if (kingdom && kingdom->getArmy() && kingdom->getArmy()->getSize() > 0) {
+        gameMap->setCell(ARMY_X, ARMY_Y, 'S'); // Set army position
+    }
     gameMap->Print_GameMap();
+
     cout << "\nPress any key to continue...";
     _getch();
 }
@@ -807,6 +815,7 @@ void GameManager::saveGame() {
         outFile << playerName << endl;
         outFile << kingName << endl;
         outFile << currentTurn << endl;
+        // Save kingdom data
         outFile << kingdom->getName() << endl;
         outFile << kingdom->getGold()->getAmount() << endl;
         outFile << kingdom->getFood()->getAmount() << endl;
@@ -834,7 +843,7 @@ void GameManager::loadGame() {
         inFile >> currentTurn;
 
         string kingdomName;
-        getline(inFile, kingdomName); 
+        getline(inFile, kingdomName); // Clear newline
         getline(inFile, kingdomName);
 
         int gold, food, population, happiness;
@@ -851,9 +860,9 @@ void GameManager::loadGame() {
         kingdom->getFood()->setAmount(food);
         kingdom->getPopulation()->setAmount(population);
         kingdom->getHappiness()->setAmount(happiness);
-        kingdom->getArmy()->setSize(armySize);
-        kingdom->getArmy()->changeMorale(armyMorale - 50); 
-        for (int i = 1; i < armyTraining; i++) { 
+        kingdom->getArmy()->set_Soldiers_size(armySize);
+        kingdom->getArmy()->changeMorale(armyMorale - 50); // Set morale
+        for (int i = 1; i < armyTraining; i++) { // Set training level
             kingdom->getArmy()->train();
         }
         kingdom->getKing()->Impose_Tax(taxAmount, taxEveryone, kingdom);
@@ -882,7 +891,7 @@ void GameManager::startGame() {
         cin >> choice;
 
         switch (choice) {
-        case 1: { 
+        case 1: { // New Game
             clearScreen();
             StatusDisplay::displayBanner("New Game");
             cout << "Enter a name for your kingdom: ";
@@ -899,7 +908,7 @@ void GameManager::startGame() {
             kingdom = new Kingdom(playerName);
             gameMap = new GameMap();
 
-            
+            // Spawn characters
             kingdom->getKing()->spawn(*gameMap, 5, 5);
             kingdom->getNobles()->spawn(*gameMap, 12, 16);
             kingdom->getLocals()->spawn(*gameMap, 10, 10);
@@ -909,11 +918,11 @@ void GameManager::startGame() {
             Gameloop();
             break;
         }
-        case 2: 
+        case 2: // Load Game
             loadGame();
             if (kingdom) {
                 gameMap = new GameMap();
-                
+                // Spawn characters at default positions
                 kingdom->getKing()->spawn(*gameMap, 5, 5);
                 kingdom->getNobles()->spawn(*gameMap, 6, 6);
                 kingdom->getLocals()->spawn(*gameMap, 7, 7);
@@ -922,10 +931,10 @@ void GameManager::startGame() {
                 Gameloop();
             }
             break;
-        case 3: 
+        case 3: // View High Scores
             viewHighScores();
             break;
-        case 4: 
+        case 4: // Quit
             return;
         default:
             cout << "Invalid choice! Please try again." << endl;
@@ -952,14 +961,14 @@ void GameManager::processPlayerTurn() {
         clearScreen();
 
         switch (choice) {
-        case 1: 
+        case 1: // Display Kingdom Status
             StatusDisplay::displayBanner("Kingdom Status");
             kingdom->display();
             cout << "Press any key to continue...";
             _getch();
             break;
 
-        case 2: { 
+        case 2: { // Military Menu
             StatusDisplay::displayBanner("Military Menu");
             cout << "1. Train Army\n";
             cout << "2. Improve Morale\n";
@@ -1000,7 +1009,7 @@ void GameManager::processPlayerTurn() {
             _getch();
             break;
         }
-        case 3: { 
+        case 3: { // Financial Menu
             StatusDisplay::displayBanner("Financial Menu");
             cout << "1. Impose Tax Policy\n";
             cout << "2. Collect Taxes via Tax Collector\n";
@@ -1048,10 +1057,10 @@ void GameManager::processPlayerTurn() {
             _getch();
             break;
         }
-        case 4:
+        case 4: // Save Game
             saveGame();
             break;
-        case 5: 
+        case 5: // Return to Main Menu
             displayMap();
             break;
 
