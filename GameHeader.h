@@ -2,7 +2,6 @@
 
 
 using namespace std;
-
 // Forward declarations
 class Kingdom;
 class GameManager;
@@ -16,6 +15,16 @@ class TaxCollector;
 class General;
 class Soldier;
 
+
+const int max_Row = 20;
+const int max_Col = 70;
+const int ARMY_X = 18;  
+const int ARMY_Y = 61;  
+
+
+
+
+
 // Utility function
 void clearScreen();
 
@@ -27,12 +36,11 @@ public:
     void NewPosition(int newX, int newY);
     int getX() const { return x; }
     int getY() const { return y; }
-    Position getPosition() const { return *this; }
 };
 // GameMap class
 class GameMap : public Position {
 private:
-    char arr[20][70];
+    char arr[max_Row][max_Col];
 public:
     GameMap();
     void Initialize_GameMap();
@@ -161,12 +169,13 @@ private:
     int training;
     int damage;
     int rebels;
+    int soldiercount;
 public:
     Soldier();
-    int getSize() const;
+	void set_Soldiers_size(int newSize);
     int getMorale() const;
+    int getSize() const;
     int getTraining() const;
-    void setSize(int newSize);
     void changeMorale(int delta);
     void train();
     void moral_checker();
@@ -196,7 +205,6 @@ private:
 public:
     Kingdom(const string& kingdomName);
     ~Kingdom();
-    void handleTradeMenu();
     string getName() const;
     Resource* getGold() const;
     Resource* getFood() const;
